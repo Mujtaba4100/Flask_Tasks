@@ -1,13 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import string
 import random
-from urllib.parse import urlparse
 import re
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///urls.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -39,26 +37,18 @@ def generate_short_code(length=6):
 
 def validate_url(url):
     """Validate if the provided string is a valid URL"""
-    # Add http:// if no scheme is provided
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + url
     
-    # Basic URL pattern validation
     url_pattern = re.compile(
-        r'^https?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
-        r'localhost|'  # localhost
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # or IP
-        r'(?::\d+)?'  # optional port
+        r'^https?://'
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'
+        r'localhost|'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        r'(?::\d+)?'
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     
-    if url_pattern.match(url):
-        try:
-            result = urlparse(url)
-            return all([result.scheme, result.netloc])
-        except:
-            return False
-    return False
+    return bool(url_pattern.match(url))
 
 def normalize_url(url):
     """Normalize URL by adding http:// if missing"""
@@ -80,32 +70,168 @@ def home():
         elif not validate_url(original_url):
             error = "Please enter a valid URL (e.g., https://example.com)"
         else:
-            # Normalize the URL
             original_url = normalize_url(original_url)
-            
-            # Check if URL already exists in database
             existing_url = URL.query.filter_by(original_url=original_url).first()
             
             if existing_url:
-                # URL already shortened, return existing short code
                 short_code = existing_url.short_code
             else:
-                # Generate new short code and save to database
                 short_code = generate_short_code()
                 new_url = URL(original_url=original_url, short_code=short_code)
                 db.session.add(new_url)
                 db.session.commit()
             
-            # Create the shortened URL
             shortened_url = request.host_url + short_code
     
-    return render_template('url_home.html', shortened_url=shortened_url, error=error)
+    # Simple HTML
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>URL Shortener</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+                background: #f5f5f5;
+            }}
+            .container {{
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }}
+            h1 {{
+                color: #333;
+                text-align: center;
+            }}
+            form {{
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+            }}
+            input[type="text"] {{
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }}
+            button {{
+                padding: 10px 20px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }}
+            button:hover {{
+                background: #45a049;
+            }}
+            .error {{
+                color: #f44336;
+                padding: 10px;
+                background: #ffebee;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }}
+            .success {{
+                color: #4CAF50;
+                padding: 15px;
+                background: #e8f5e9;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }}
+            .result {{
+                background: #f9f9f9;
+                padding: 20px;
+                border-radius: 5px;
+                margin-top: 20px;
+                border-left: 4px solid #4CAF50;
+            }}
+            .url-display {{
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }}
+            .url-display input {{
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 14px;
+            }}
+            .copy-btn {{
+                padding: 10px 20px;
+                background: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }}
+            .copy-btn:hover {{
+                background: #1976D2;
+            }}
+            nav {{
+                text-align: center;
+                margin-top: 20px;
+            }}
+            nav a {{
+                color: #4CAF50;
+                text-decoration: none;
+                margin: 0 10px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>URL Shortener</h1>
+            <p style="text-align: center; color: #666;">Final Project - Innomatics Research Labs</p>
+            
+            {f'<div class="error">{error}</div>' if error else ''}
+            
+            <form method="POST" action="/">
+                <input type="text" name="url" placeholder="Enter URL (e.g., https://example.com)" required>
+                <button type="submit">Shorten URL</button>
+            </form>
+            
+            {f'''<div class="result">
+                <strong>✓ URL Shortened Successfully!</strong>
+                <div class="url-display">
+                    <input type="text" id="shortenedUrl" value="{shortened_url}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard()">Copy</button>
+                </div>
+            </div>''' if shortened_url else ''}
+            
+            <nav>
+                <a href="/history">View History</a>
+            </nav>
+        </div>
+        
+        <script>
+            function copyToClipboard() {{
+                const urlInput = document.getElementById('shortenedUrl');
+                urlInput.select();
+                urlInput.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#4CAF50';
+                
+                setTimeout(() => {{
+                    btn.textContent = originalText;
+                    btn.style.background = '#2196F3';
+                }}, 2000);
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    return html
 
-@app.route('/history')
-def history():
-    """History page showing all shortened URLs"""
-    urls = URL.query.order_by(URL.created_at.desc()).all()
-    return render_template('url_history.html', urls=urls, host_url=request.host_url)
 
 @app.route('/<short_code>')
 def redirect_to_url(short_code):
@@ -118,30 +244,128 @@ def redirect_to_url(short_code):
         db.session.commit()
         return redirect(url.original_url)
     else:
-        flash('Invalid short URL', 'error')
-        return redirect(url_for('home'))
+        return "Invalid short URL", 404
 
-@app.route('/api/stats/<short_code>')
-def get_stats(short_code):
-    """Get statistics for a shortened URL"""
-    url = URL.query.filter_by(short_code=short_code).first()
-    if url:
-        return jsonify({
-            'short_code': url.short_code,
-            'original_url': url.original_url,
-            'clicks': url.clicks,
-            'created_at': url.created_at.strftime('%Y-%m-%d %H:%M:%S')
-        })
-    return jsonify({'error': 'URL not found'}), 404
 
-@app.route('/delete/<int:id>', methods=['POST'])
-def delete_url(id):
-    """Delete a URL from history"""
-    url = URL.query.get_or_404(id)
-    db.session.delete(url)
-    db.session.commit()
-    flash('URL deleted successfully', 'success')
-    return redirect(url_for('history'))
+@app.route('/history')
+def history():
+    """Show history of all shortened URLs"""
+    urls = URL.query.all()
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>URL History</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                max-width: 1000px;
+                margin: 50px auto;
+                padding: 20px;
+                background: #f5f5f5;
+            }}
+            .container {{
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }}
+            h1 {{
+                color: #333;
+                text-align: center;
+            }}
+            nav {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            nav a {{
+                margin: 0 10px;
+                color: #4CAF50;
+                text-decoration: none;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            th, td {{
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }}
+            th {{
+                background: #4CAF50;
+                color: white;
+            }}
+            tr:hover {{
+                background: #f5f5f5;
+            }}
+            .empty {{
+                text-align: center;
+                padding: 40px;
+                color: #666;
+            }}
+            a {{
+                color: #4CAF50;
+                text-decoration: none;
+            }}
+            a:hover {{
+                text-decoration: underline;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <nav>
+                <a href="/">Home</a>
+            </nav>
+            
+            <h1>URL History</h1>
+            <p style="text-align: center; color: #666;">All your shortened URLs</p>
+    """
+    
+    if urls:
+        html += """
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Original URL</th>
+                        <th>Short URL</th>
+                        <th>Clicks</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        for i, url in enumerate(urls, 1):
+            html += f"""
+                    <tr>
+                        <td>{i}</td>
+                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">{url.original_url}</td>
+                        <td><a href="/{url.short_code}" target="_blank">{request.host_url}{url.short_code}</a></td>
+                        <td>{url.clicks}</td>
+                        <td>{url.created_at.strftime('%Y-%m-%d %H:%M')}</td>
+                    </tr>
+            """
+        html += """
+                </tbody>
+            </table>
+        """
+    else:
+        html += """
+            <div class="empty">
+                <h3>No URLs yet</h3>
+                <p><a href="/">Shorten your first URL</a></p>
+            </div>
+        """
+    
+    html += """
+        </div>
+    </body>
+    </html>
+    """
+    return html
 
 if __name__ == '__main__':
     print("=" * 60)
