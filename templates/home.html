@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Taking App</title>
     <style>
         body {
@@ -24,21 +26,23 @@
         form {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         input[type="text"] {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 5px;
+            font-size: 1em;
         }
         button {
-            padding: 10px 20px;
+            padding: 12px 25px;
             background: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1em;
         }
         button:hover {
             background: #45a049;
@@ -49,10 +53,10 @@
         }
         li {
             background: #f9f9f9;
-            padding: 12px;
-            margin: 8px 0;
+            padding: 15px;
+            margin: 10px 0;
             border-radius: 5px;
-            border-left: 3px solid #4CAF50;
+            border-left: 4px solid #4CAF50;
         }
         .no-notes {
             text-align: center;
@@ -63,9 +67,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>Note Taking App</h1>
-        <p style="text-align: center; color: #666;">Backend Project 2</p>
+        <h1>📝 Note Taking App</h1>
         
+        <!-- Bug Fix #5: Added action="/" and method="POST" -->
         <form action="/" method="POST">
             <input type="text" name="note" placeholder="Enter a note" required>
             <button type="submit">Add Note</button>
@@ -73,12 +77,12 @@
 
         {% if notes %}
         <ul>
-        {% for note in notes%}
+        {% for note in notes %}
             <li>{{ note }}</li>
         {% endfor %}
         </ul>
         {% else %}
-        <div class="no-notes">No notes yet. Add your first note!</div>
+        <div class="no-notes">No notes yet. Add your first note above!</div>
         {% endif %}
     </div>
 </body>
