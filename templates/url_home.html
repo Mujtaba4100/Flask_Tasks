@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: white;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .card-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .card-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .card-body {
+            padding: 40px;
+        }
+        
+        .form-control {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .shortened-url {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .shortened-url input {
+            flex: 1;
+        }
+        
+        .btn-copy {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-copy:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-copy.copied {
+            background: #6c757d;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .features {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .feature-item {
+            display: inline-block;
+            margin: 10px 20px;
+            color: white;
+        }
+        
+        .feature-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-link"></i> URL Shortener
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">
+                            <i class="fas fa-history"></i> History
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-scissors"></i> URL Shortener</h1>
+                <p>Make your links shorter and easier to share</p>
+            </div>
+            <div class="card-body">
+                <!-- Error Message -->
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- URL Shortening Form -->
+                <form method="POST" action="/">
+                    <div class="mb-4">
+                        <label for="url" class="form-label">
+                            <i class="fas fa-link"></i> Enter URL to Shorten:
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="url" 
+                            name="url" 
+                            placeholder="https://example.com/very-long-url-that-needs-shortening"
+                            required
+                        >
+                        <small class="form-text text-muted">
+                            Enter a valid URL (e.g., https://example.com or www.example.com)
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-cut"></i> Shorten URL
+                    </button>
+                </form>
+
+                <!-- Shortened URL Result -->
+                {% if shortened_url %}
+                <div class="result-container">
+                    <h5><i class="fas fa-check-circle text-success"></i> Your Shortened URL:</h5>
+                    <div class="shortened-url">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="shortenedUrl" 
+                            value="{{ shortened_url }}" 
+                            readonly
+                        >
+                        <button class="btn-copy" onclick="copyToClipboard()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Click the shortened URL or use the copy button to share it!
+                    </small>
+                </div>
+                {% endif %}
+
+                <!-- Information Box -->
+                <div class="alert alert-info mt-4" role="alert">
+                    <h6><i class="fas fa-lightbulb"></i> How it works:</h6>
+                    <ul class="mb-0">
+                        <li>Paste your long URL in the field above</li>
+                        <li>Click "Shorten URL" button</li>
+                        <li>Copy and share your shortened link!</li>
+                        <li>View all your shortened URLs in the <a href="/history">History</a> page</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <div class="feature-item">
+                <div><i class="fas fa-bolt"></i></div>
+                <div>Fast & Easy</div>
+            </div>
+            <div class="feature-item">
+                <div><i class="fas fa-shield-alt"></i></div>
+                <div>Secure</div>
+            </div>
+            <div class="feature-item">
+                <div><i class="fas fa-database"></i></div>
+                <div>Saved History</div>
+            </div>
+            <div class="feature-item">
+                <div><i class="fas fa-chart-line"></i></div>
+                <div>Track Clicks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>URL Shortener - Final Project | Innomatics Research Labs</p>
+        <p><small>Created with <i class="fas fa-heart text-danger"></i> using Flask & Bootstrap</small></p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Copy to Clipboard Script -->
+    <script>
+        function copyToClipboard() {
+            const urlInput = document.getElementById('shortenedUrl');
+            const copyBtn = document.querySelector('.btn-copy');
+            
+            // Select and copy the text
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(urlInput.value).then(function() {
+                // Change button appearance
+                copyBtn.classList.add('copied');
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy URL. Please copy manually.');
+            });
+        }
+    </script>
+</body>
+</html>
