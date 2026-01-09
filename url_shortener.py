@@ -148,30 +148,6 @@ def home():
                 padding: 20px;
                 border-radius: 5px;
                 margin-top: 20px;
-                border-left: 4px solid #4CAF50;
-            }}
-            .url-display {{
-                display: flex;
-                gap: 10px;
-                margin-top: 10px;
-            }}
-            .url-display input {{
-                flex: 1;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 14px;
-            }}
-            .copy-btn {{
-                padding: 10px 20px;
-                background: #2196F3;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            }}
-            .copy-btn:hover {{
-                background: #1976D2;
             }}
             nav {{
                 text-align: center;
@@ -190,43 +166,17 @@ def home():
             <p style="text-align: center; color: #666;">Final Project - Innomatics Research Labs</p>
             
             {f'<div class="error">{error}</div>' if error else ''}
+            {f'<div class="success">✓ Shortened URL: <strong>{shortened_url}</strong></div>' if shortened_url else ''}
             
             <form method="POST" action="/">
                 <input type="text" name="url" placeholder="Enter URL (e.g., https://example.com)" required>
                 <button type="submit">Shorten URL</button>
             </form>
             
-            {f'''<div class="result">
-                <strong>✓ URL Shortened Successfully!</strong>
-                <div class="url-display">
-                    <input type="text" id="shortenedUrl" value="{shortened_url}" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard()">Copy</button>
-                </div>
-            </div>''' if shortened_url else ''}
-            
             <nav>
                 <a href="/history">View History</a>
             </nav>
         </div>
-        
-        <script>
-            function copyToClipboard() {{
-                const urlInput = document.getElementById('shortenedUrl');
-                urlInput.select();
-                urlInput.setSelectionRange(0, 99999);
-                document.execCommand('copy');
-                
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = '#4CAF50';
-                
-                setTimeout(() => {{
-                    btn.textContent = originalText;
-                    btn.style.background = '#2196F3';
-                }}, 2000);
-            }}
-        </script>
     </body>
     </html>
     """
